@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:clima/utilities/constants.dart';
 import 'package:clima/services/weather.dart';
 import 'city_screen.dart';
+import 'package:intl/intl.dart';
 
 class LocationScreen extends StatefulWidget {
   LocationScreen({this.locationWeather});
@@ -18,6 +19,9 @@ class _LocationScreenState extends State<LocationScreen> {
   int temperature = 0;
   String weatherIcon = '';
   String cityName = '';
+  int humidity = 0;
+  int timezoneOffset = 0;
+  String formattedTime = '';
 
   @override
   void initState() {
@@ -37,6 +41,12 @@ class _LocationScreenState extends State<LocationScreen> {
       double temp = weatherData['main']['temp'];
       temperature = temp.toInt();
       weatherMessage = weather.getMessage(temperature);
+      humidity = weatherData['main']['humidity'];
+      timezoneOffset = weatherData['timezone'];
+      DateTime now = DateTime.now().toUtc().add(
+            Duration(seconds: timezoneOffset),
+          );
+      formattedTime = DateFormat('HH:mm').format(now);
       var condition = weatherData['weather'][0]['id'];
       weatherIcon = weather.getWeatherIcon(condition);
       cityName = weatherData['name'];
@@ -84,10 +94,12 @@ class _LocationScreenState extends State<LocationScreen> {
                           },
                         ),
                       );
-                      if(typedName != null) {
-                        var weatherData = await weather.getCityWeather(typedName);
+                      if (typedName != null) {
+                        var weatherData =
+                            await weather.getCityWeather(typedName);
                         updateUI(weatherData);
-                      };
+                      }
+                      ;
                     },
                     child: Icon(
                       Icons.location_city,
@@ -97,11 +109,29 @@ class _LocationScreenState extends State<LocationScreen> {
                 ],
               ),
               Padding(
+                padding: EdgeInsets.only(right: 20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: 30.0,
+                    ),
+                    SizedBox(width: 5,),
+                    Text(
+                      'Localtime Updated: $formattedTime',
+                      textAlign: TextAlign.right,
+                      style: kMessageTextStyle.copyWith(fontSize: 20.0),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
                 padding: EdgeInsets.only(left: 15.0),
                 child: Row(
                   children: <Widget>[
                     Text(
-                      '$temperature°',
+                      '$temperature°C ',
                       style: kTempTextStyle,
                     ),
                     Text(
@@ -109,6 +139,14 @@ class _LocationScreenState extends State<LocationScreen> {
                       style: kConditionTextStyle,
                     ),
                   ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 15.0),
+                child: Text(
+                  'Humidity: $humidity%',
+                  textAlign: TextAlign.left,
+                  style: kMessageTextStyle.copyWith(fontSize: 30.0),
                 ),
               ),
               Padding(
